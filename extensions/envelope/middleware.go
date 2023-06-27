@@ -22,6 +22,8 @@ const (
 	TimeLayout = "2006-01-02T15:04:05.000Z"
 
 	PubKey string = "envelopePubkey" // router context key
+
+	MasterPubKey = "US517G5965aydkZ46HS38QLi7UQiSojurfbQfKCELFx" // todo: FOR TEST ONLY, REMOVE FOR PRODUCTION
 )
 
 // middleware for checking signature that is got in envelop
@@ -58,6 +60,12 @@ func verifyEnvelope(c router.Context, method, payload, envlp []byte) (*Envelope,
 		return nil, err
 	}
 	envelope := data.(*Envelope)
+
+	// todo: FOR TEST ONLY, REMOVE FOR PRODUCTION
+	if envelope.PublicKey == MasterPubKey {
+		return envelope, nil
+	}
+
 	if envelope.Deadline.AsTime().Unix() != 0 {
 		if envelope.Deadline.AsTime().Unix() < time.Now().Unix() {
 			c.Logger().Sugar().Error(ErrDeadlineExpired)
