@@ -45,7 +45,7 @@ func Verify() router.MiddlewareFunc {
 						if e, err = verifyEnvelope(c, iArgs[methodNamePos], iArgs[payloadPos], iArgs[envelopePos]); err != nil {
 							return nil, err
 						}
-						// store corect pubkey in context
+						// store correct pubkey in context
 						c.SetParam(PubKey, e.PublicKey)
 					}
 				}

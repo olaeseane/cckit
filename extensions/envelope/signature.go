@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/sha256"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -25,12 +26,15 @@ func CreateNonce() string {
 
 func Hash(payload []byte, nonce, channel, chaincode, method, deadline string, pubkey []byte) [32]byte {
 	bb := append(removeSpacesBetweenCommaAndQuotes(payload), nonce...) // resolve the unclear json serialization behavior in protojson package
+	fmt.Printf("\npaylod - %s\n", bb)
 	bb = append(bb, channel...)
 	bb = append(bb, chaincode...)
 	bb = append(bb, method...)
 	bb = append(bb, deadline...)
 	b58Pubkey := base58.Encode(pubkey)
+	fmt.Printf("\nb58Pubkey - %s\n", b58Pubkey)
 	bb = append(bb, b58Pubkey...)
+	fmt.Printf("\nbb - %s\n", bb)
 	return sha256.Sum256(bb)
 }
 
@@ -43,6 +47,7 @@ func CreateSig(payload []byte, nonce, channel, chaincode, method, deadline strin
 
 func CheckSig(payload []byte, nonce, channel, chaincode, method, deadline string, pubKey []byte, sig []byte) error {
 	hashed := Hash(payload, nonce, channel, chaincode, method, deadline, pubKey)
+	fmt.Printf("\nhash_to_sign - %s\n", base58.Encode(hashed[:]))
 	if !ed25519.Verify(ed25519.PublicKey(pubKey), hashed[:], sig) {
 		return ErrCheckSignatureFailed
 	}
@@ -50,5 +55,7 @@ func CheckSig(payload []byte, nonce, channel, chaincode, method, deadline string
 }
 
 func removeSpacesBetweenCommaAndQuotes(s []byte) []byte {
-	return []byte(strings.ReplaceAll(string(s), `", "`, `","`))
+	removed := strings.ReplaceAll(string(s), `", "`, `","`)
+	removed = strings.ReplaceAll(removed, `"}, {"`, `"},{"`)
+	return []byte(strings.ReplaceAll(removed, `], "`, `],"`))
 }
